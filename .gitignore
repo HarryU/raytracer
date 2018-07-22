@@ -1,2 +1,6 @@
 /target
 **/*.rs.bk
+*.swp
+*.png
+*.lock
+main
