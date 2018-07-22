@@ -16,7 +16,7 @@ fn main() {
         width: 800,
         height: 600,
         fov: 90.0,
-        sphere: Sphere {
+        spheres: vec![Sphere {
             centre: Point {
                 x: 0.0,
                 y: 0.0,
@@ -28,7 +28,7 @@ fn main() {
                 green: 0.7,
                 blue: 0.3,
             },
-        },
+        }],
     };
 
     let img: DynamicImage = render(&test_scene);
@@ -42,12 +42,8 @@ fn render(scene: &Scene) -> DynamicImage {
     for x in 0..scene.width {
         for y in 0..scene.height {
             let ray = Ray::create_prime(x, y, scene);
-
-            if scene.sphere.intersect(&ray) {
-                image.put_pixel(x, y, Color::to_rgba(&scene.sphere.color))
-            } else {
-                image.put_pixel(x, y, black);
-            }
+            let intersection = scene.trace(&ray);
+            intersection.map(|i| i.sphere.color);
         }
     }
     image

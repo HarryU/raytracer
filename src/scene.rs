@@ -1,5 +1,6 @@
 use image::{Pixel, Rgba};
 use point::Point;
+use rendering::{Intersectable, Ray};
 use vector::Vector3;
 
 const GAMMA: f32 = 2.2;
@@ -36,5 +37,34 @@ pub struct Scene {
     pub width: u32,
     pub height: u32,
     pub fov: f64,
-    pub sphere: Sphere,
+    pub spheres: Vec<Sphere>,
+}
+
+pub struct Intersection<'a> {
+    pub distance: f64,
+    pub sphere: &'a Sphere,
+    //Secret variable stops outside code constructing this; have to use new instead.
+    _secret: (),
+}
+
+impl<'a> Intersection<'a> {
+    pub fn new<'b>(distance: f64, sphere: &'b Sphere) -> Intersection<'b> {
+        if !distance.is_finite() {
+            panic!("Intersection must have finite distance.");
+        }
+        Intersection {
+            distance: distance,
+            sphere: sphere,
+            _secret: (),
+        }
+    }
+}
+
+impl Scene {
+    pub fn trace(&self, ray: &Ray) -> Option<Intersection> {
+        self.spheres
+            .iter()
+            .filter_map(|s| s.intersect(ray).map(|d| Intersection::new(d, s)))
+            .min_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap())
+    }
 }
