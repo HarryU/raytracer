@@ -4,4 +4,4 @@
 * Make the scene definition language at least partially POVRay compatible
 * Add other geometrical primatives (cubes, triangles, cylinders, cones)
 * Add complex geometical primitives (torus?, prisms?, polygons?)
-* Optimise a bit (and remove as much `.clone()`'ing as possible?
+* Optimise a bit (and remove as much `.clone()`'ing as possible)
