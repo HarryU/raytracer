@@ -5,7 +5,7 @@ mod rendering;
 mod scene;
 mod vector;
 
-use image::{DynamicImage, GenericImage, Pixel, Rgba};
+use image::{DynamicImage, GenericImage};
 use point::Point;
 use rendering::{Intersectable, Ray};
 use scene::{Color, Intersection, Light, Scene, Sphere};
