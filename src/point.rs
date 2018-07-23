@@ -1,3 +1,4 @@
+use std::ops::Add;
 use std::ops::Sub;
 use vector::Vector3;
 
@@ -55,5 +56,25 @@ impl Sub<Point> for Point {
             y: self.y - other.y,
             z: self.z - other.z,
         }
+    }
+}
+
+impl Add<Vector3> for Point {
+    type Output = Point;
+
+    fn add(self, other: Vector3) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+impl Add<Point> for Vector3 {
+    type Output = Point;
+
+    fn add(self, other: Point) -> Point {
+        other + self
     }
 }

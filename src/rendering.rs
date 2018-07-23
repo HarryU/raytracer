@@ -29,6 +29,7 @@ impl Ray {
 
 pub trait Intersectable {
     fn intersect(&self, ray: &Ray) -> Option<f64>;
+    fn surface_normal(&self, hit_point: &Point) -> Vector3;
 }
 
 impl Intersectable for Sphere {
@@ -51,5 +52,9 @@ impl Intersectable for Sphere {
 
         let distance = if t0 < t1 { t0 } else { t1 };
         Some(distance)
+    }
+
+    fn surface_normal(&self, hit_point: &Point) -> Vector3 {
+        (hit_point.clone() - self.centre.clone()).normalise()
     }
 }
