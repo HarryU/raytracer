@@ -7,9 +7,8 @@ mod vector;
 
 use image::{DynamicImage, GenericImage, Pixel, Rgba};
 use point::Point;
-use rendering::{Intersectable, Ray};
+use rendering::Ray;
 use scene::{Color, Scene, Sphere};
-use vector::Vector3;
 
 fn main() {
     let test_scene = Scene {
@@ -43,7 +42,10 @@ fn render(scene: &Scene) -> DynamicImage {
         for y in 0..scene.height {
             let ray = Ray::create_prime(x, y, scene);
             let intersection = scene.trace(&ray);
-            intersection.map(|i| i.sphere.color);
+            let color = intersection
+                .map(|i| Color::to_rgba(&i.sphere.color))
+                .unwrap_or(black);
+            image.put_pixel(x, y, color);
         }
     }
     image

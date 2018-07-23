@@ -1,7 +1,6 @@
 use image::{Pixel, Rgba};
 use point::Point;
 use rendering::{Intersectable, Ray};
-use vector::Vector3;
 
 const GAMMA: f32 = 2.2;
 
