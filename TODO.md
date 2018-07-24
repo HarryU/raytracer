@@ -2,6 +2,7 @@
 
 * Add:
   - planes
+  - shadows
   - reflection/refraction
   - other light types (e.g. spherical)
   
