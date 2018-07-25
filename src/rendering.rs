@@ -1,5 +1,6 @@
 use point::Point;
 use scene::{Element, Plane, Scene, Sphere};
+use std::f32;
 use vector::Vector3;
 
 pub struct Ray {
@@ -27,9 +28,15 @@ impl Ray {
     }
 }
 
+pub struct TextureCoords {
+    pub x: f32,
+    pub y: f32,
+}
+
 pub trait Intersectable {
     fn intersect(&self, ray: &Ray) -> Option<f64>;
     fn surface_normal(&self, hit_point: &Point) -> Vector3;
+    fn texture_coords(&self, hit_point: &Point) -> TextureCoords;
 }
 
 impl Intersectable for Element {
@@ -44,6 +51,13 @@ impl Intersectable for Element {
         match *self {
             Element::Sphere(ref s) => s.surface_normal(hit_point),
             Element::Plane(ref p) => p.surface_normal(hit_point),
+        }
+    }
+
+    fn texture_coords(&self, hit_point: &Point) -> TextureCoords {
+        match *self {
+            Element::Sphere(ref s) => s.texture_coords(hit_point),
+            Element::Plane(ref p) => p.texture_coords(hit_point),
         }
     }
 }
@@ -74,6 +88,14 @@ impl Intersectable for Sphere {
         let surface_normal = (hit_point.clone() - self.centre.clone()).normalise();
         surface_normal
     }
+
+    fn texture_coords(&self, hit_point: &Point) -> TextureCoords {
+        let hit_vec = *hit_point - self.centre;
+        TextureCoords {
+            x: (1.0 + (hit_vec.z.atan2(hit_vec.x) as f32) / f32::consts::PI) * 0.5,
+            y: (hit_vec.y / self.radius).acos() as f32 / f32::consts::PI,
+        }
+    }
 }
 
 impl Intersectable for Plane {
@@ -93,5 +115,27 @@ impl Intersectable for Plane {
     fn surface_normal(&self, _: &Point) -> Vector3 {
         let surface_normal = -self.normal;
         surface_normal
+    }
+
+    fn texture_coords(&self, hit_point: &Point) -> TextureCoords {
+        let mut x_axis = self.normal.cross(&Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        });
+        if x_axis.length() == 0.0 {
+            x_axis = self.normal.cross(&Vector3 {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            });
+        }
+        let y_axis = self.normal.cross(&x_axis);
+        let hit_vec = *hit_point - self.origin;
+
+        TextureCoords {
+            x: hit_vec.dot(&x_axis) as f32,
+            y: hit_vec.dot(&y_axis) as f32,
+        }
     }
 }

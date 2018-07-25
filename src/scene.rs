@@ -1,13 +1,64 @@
-use image::{Pixel, Rgba};
+use image;
+use image::{DynamicImage, GenericImage, Pixel, Rgba};
 use point::Point;
-use rendering::{Intersectable, Ray};
+use rendering::{Intersectable, Ray, TextureCoords};
+use serde::{Deserialize, Deserializer};
 use std::ops::{Add, Mul};
+use std::path::PathBuf;
 use vector::Vector3;
 
 const GAMMA: f32 = 2.2;
 
 fn gamma_encode(linear: f32) -> f32 {
     linear.powf(1.0 / GAMMA)
+}
+
+fn gamma_decode(encoded: f32) -> f32 {
+    encoded.powf(GAMMA)
+}
+
+#[derive(Deserialize)]
+pub struct Material {
+    pub coloration: Coloration,
+    pub albedo: f32,
+}
+
+#[derive(Deserialize)]
+pub enum Coloration {
+    Color(Color),
+    Texture(#[serde(deserialize_with = "load_texture")] DynamicImage),
+}
+
+impl Coloration {
+    pub fn color(&self, texture_coords: &TextureCoords) -> Color {
+        match *self {
+            Coloration::Color(c) => c,
+            Coloration::Texture(ref tex) => {
+                let tex_x = wrap(texture_coords.x, tex.width());
+                let tex_y = wrap(texture_coords.y, tex.height());
+                Color::from_rgba(tex.get_pixel(tex_x, tex_y))
+            }
+        }
+    }
+}
+
+pub fn load_texture<'de, D>(deserializer: D) -> Result<DynamicImage, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let path = PathBuf::deserialize(deserializer)?;
+    Ok(image::open(path).expect("Unable to open texture file"))
+}
+
+fn wrap(val: f32, bound: u32) -> u32 {
+    let signed_bound = bound as i32;
+    let float_coord = val * bound as f32;
+    let wrapped_coord = (float_coord as i32) % signed_bound;
+    if wrapped_coord < 0 {
+        (wrapped_coord + signed_bound) as u32
+    } else {
+        wrapped_coord as u32
+    }
 }
 
 #[derive(Deserialize, Clone, Copy)]
@@ -41,6 +92,14 @@ impl Color {
             (gamma_encode(self.blue) * 255.0) as u8,
             255,
         )
+    }
+
+    pub fn from_rgba(rgba: Rgba<u8>) -> Color {
+        Color {
+            red: gamma_decode((rgba.data[0] as f32) / 255.0),
+            green: gamma_decode((rgba.data[1] as f32) / 255.0),
+            blue: gamma_decode((rgba.data[2] as f32) / 255.0),
+        }
     }
 
     pub fn clamp(&self) -> Color {
@@ -98,8 +157,7 @@ pub enum Element {
 pub struct Sphere {
     pub centre: Point,
     pub radius: f64,
-    pub color: Color,
-    pub albedo: f32,
+    pub material: Material,
 }
 
 #[derive(Deserialize)]
@@ -107,22 +165,21 @@ pub struct Plane {
     pub origin: Point,
     #[serde(deserialize_with = "Vector3::deserialize_normalized")]
     pub normal: Vector3,
-    pub color: Color,
-    pub albedo: f32,
+    pub material: Material,
 }
 
 impl Element {
-    pub fn color(&self) -> Color {
+    pub fn color(&self, hit: &Point) -> Color {
         match *self {
-            Element::Sphere(ref s) => s.color,
-            Element::Plane(ref p) => p.color,
+            Element::Sphere(ref s) => s.material.coloration.color(&self.texture_coords(hit)),
+            Element::Plane(ref p) => p.material.coloration.color(&self.texture_coords(hit)),
         }
     }
 
     pub fn albedo(&self) -> &f32 {
         match *self {
-            Element::Sphere(ref s) => &s.albedo,
-            Element::Plane(ref p) => &p.albedo,
+            Element::Sphere(ref s) => &s.material.albedo,
+            Element::Plane(ref p) => &p.material.albedo,
         }
     }
 }
