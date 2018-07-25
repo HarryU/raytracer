@@ -60,11 +60,39 @@ impl Mul<f32> for Color {
     }
 }
 
+pub enum Element {
+    Sphere(Sphere),
+    Plane(Plane),
+}
+
 pub struct Sphere {
     pub centre: Point,
     pub radius: f64,
     pub color: Color,
     pub albedo: f32,
+}
+
+pub struct Plane {
+    pub origin: Point,
+    pub normal: Vector3,
+    pub color: Color,
+    pub albedo: f32,
+}
+
+impl Element {
+    pub fn color(&self) -> Color {
+        match *self {
+            Element::Sphere(ref s) => s.color,
+            Element::Plane(ref p) => p.color,
+        }
+    }
+
+    pub fn albedo(&self) -> &f32 {
+        match *self {
+            Element::Sphere(ref s) => &s.albedo,
+            Element::Plane(ref p) => &p.albedo,
+        }
+    }
 }
 
 pub struct Light {
@@ -77,25 +105,26 @@ pub struct Scene {
     pub width: u32,
     pub height: u32,
     pub fov: f64,
-    pub spheres: Vec<Sphere>,
+    pub shadow_bias: f64,
+    pub elements: Vec<Element>,
     pub light: Light,
 }
 
 pub struct Intersection<'a> {
     pub distance: f64,
-    pub sphere: &'a Sphere,
+    pub element: &'a Element,
     //Secret variable stops outside code constructing this; have to use new instead.
     _secret: (),
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new<'b>(distance: f64, sphere: &'b Sphere) -> Intersection<'b> {
+    pub fn new<'b>(distance: f64, element: &'b Element) -> Intersection<'b> {
         if !distance.is_finite() {
             panic!("Intersection must have finite distance.");
         }
         Intersection {
             distance: distance,
-            sphere: sphere,
+            element: element,
             _secret: (),
         }
     }
@@ -103,9 +132,9 @@ impl<'a> Intersection<'a> {
 
 impl Scene {
     pub fn trace(&self, ray: &Ray) -> Option<Intersection> {
-        self.spheres
+        self.elements
             .iter()
-            .filter_map(|s| s.intersect(ray).map(|d| Intersection::new(d, s)))
+            .filter_map(|e| e.intersect(ray).map(|d| Intersection::new(d, e)))
             .min_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap())
     }
 }

@@ -1,6 +1,6 @@
 use std::ops::{Mul, Neg, Sub};
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,

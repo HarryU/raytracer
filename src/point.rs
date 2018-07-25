@@ -2,7 +2,7 @@ use std::ops::Add;
 use std::ops::Sub;
 use vector::Vector3;
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Point {
     pub x: f64,
     pub y: f64,

@@ -1,5 +1,5 @@
 use point::Point;
-use scene::{Scene, Sphere};
+use scene::{Element, Plane, Scene, Sphere};
 use vector::Vector3;
 
 pub struct Ray {
@@ -32,6 +32,22 @@ pub trait Intersectable {
     fn surface_normal(&self, hit_point: &Point) -> Vector3;
 }
 
+impl Intersectable for Element {
+    fn intersect(&self, ray: &Ray) -> Option<f64> {
+        match *self {
+            Element::Sphere(ref s) => s.intersect(ray),
+            Element::Plane(ref p) => p.intersect(ray),
+        }
+    }
+
+    fn surface_normal(&self, hit_point: &Point) -> Vector3 {
+        match *self {
+            Element::Sphere(ref s) => s.surface_normal(hit_point),
+            Element::Plane(ref p) => p.surface_normal(hit_point),
+        }
+    }
+}
+
 impl Intersectable for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<f64> {
         let line: Vector3 = self.centre.clone() - ray.origin.clone();
@@ -55,6 +71,27 @@ impl Intersectable for Sphere {
     }
 
     fn surface_normal(&self, hit_point: &Point) -> Vector3 {
-        (hit_point.clone() - self.centre.clone()).normalise()
+        let surface_normal = (hit_point.clone() - self.centre.clone()).normalise();
+        surface_normal
+    }
+}
+
+impl Intersectable for Plane {
+    fn intersect(&self, ray: &Ray) -> Option<f64> {
+        let normal = &self.normal;
+        let denom = normal.dot(&ray.direction);
+        if denom > 1e-6 {
+            let v = self.origin - ray.origin;
+            let distance = v.dot(&normal) / denom;
+            if distance >= 0.0 {
+                return Some(distance);
+            }
+        }
+        None
+    }
+
+    fn surface_normal(&self, _: &Point) -> Vector3 {
+        let surface_normal = -self.normal;
+        surface_normal
     }
 }

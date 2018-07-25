@@ -1,8 +1,8 @@
 # To Do
 
 * Add:
-  - planes
-  - shadows
+  - ~~planes~~
+  - ~~shadows~~
   - reflection/refraction
   - other light types (e.g. spherical)
   
