@@ -10,7 +10,7 @@ fn gamma_encode(linear: f32) -> f32 {
     linear.powf(1.0 / GAMMA)
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Deserialize, Clone, Copy)]
 pub struct Color {
     pub red: f32,
     pub green: f32,
@@ -88,11 +88,13 @@ impl Mul<f32> for Color {
     }
 }
 
+#[derive(Deserialize)]
 pub enum Element {
     Sphere(Sphere),
     Plane(Plane),
 }
 
+#[derive(Deserialize)]
 pub struct Sphere {
     pub centre: Point,
     pub radius: f64,
@@ -100,8 +102,10 @@ pub struct Sphere {
     pub albedo: f32,
 }
 
+#[derive(Deserialize)]
 pub struct Plane {
     pub origin: Point,
+    #[serde(deserialize_with = "Vector3::deserialize_normalized")]
     pub normal: Vector3,
     pub color: Color,
     pub albedo: f32,
@@ -123,18 +127,22 @@ impl Element {
     }
 }
 
+#[derive(Deserialize)]
 pub struct DirectionalLight {
+    #[serde(deserialize_with = "Vector3::deserialize_normalized")]
     pub direction: Vector3,
     pub color: Color,
     pub intensity: f32,
 }
 
+#[derive(Deserialize)]
 pub struct SphericalLight {
     pub position: Point,
     pub color: Color,
     pub intensity: f32,
 }
 
+#[derive(Deserialize)]
 pub enum Light {
     Directional(DirectionalLight),
     Spherical(SphericalLight),
@@ -173,6 +181,7 @@ impl Light {
     }
 }
 
+#[derive(Deserialize)]
 pub struct Scene {
     pub width: u32,
     pub height: u32,

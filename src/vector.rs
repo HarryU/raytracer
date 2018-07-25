@@ -1,6 +1,7 @@
+use serde::{Deserialize, Deserializer};
 use std::ops::{Mul, Neg, Sub};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Deserialize)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,
@@ -39,6 +40,14 @@ impl Vector3 {
 
     pub fn dot(&self, other: &Vector3) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    pub fn deserialize_normalized<'de, D>(deserializer: D) -> Result<Vector3, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let v3 = Vector3::deserialize(deserializer)?;
+        Ok(v3.normalise())
     }
 }
 

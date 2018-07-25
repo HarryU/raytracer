@@ -1,4 +1,9 @@
+#[macro_use]
+extern crate serde_derive;
 extern crate image;
+extern crate serde;
+extern crate serde_json;
+use std::fs::File;
 
 mod point;
 mod rendering;
@@ -6,143 +11,13 @@ mod scene;
 mod vector;
 
 use image::{DynamicImage, GenericImage};
-use point::Point;
 use rendering::{Intersectable, Ray};
-use scene::{
-    Color, DirectionalLight, Element, Intersection, Light, Plane, Scene, Sphere, SphericalLight,
-};
-use vector::Vector3;
+use scene::{Color, Intersection, Scene};
 
 fn main() {
-    let test_scene = Scene {
-        width: 1920,
-        height: 1080,
-        fov: 90.0,
-        shadow_bias: 1e-12,
-        elements: vec![
-            Element::Sphere(Sphere {
-                centre: Point {
-                    x: 0.0,
-                    y: 0.0,
-                    z: -5.0,
-                },
-                radius: 1.0,
-                color: Color {
-                    red: 0.2,
-                    green: 1.0,
-                    blue: 0.2,
-                },
-                albedo: 0.18,
-            }),
-            Element::Sphere(Sphere {
-                centre: Point {
-                    x: -3.0,
-                    y: 1.0,
-                    z: -6.0,
-                },
-                radius: 2.0,
-                color: Color {
-                    red: 0.8,
-                    green: 0.2,
-                    blue: 0.4,
-                },
-                albedo: 0.58,
-            }),
-            Element::Sphere(Sphere {
-                centre: Point {
-                    x: 2.0,
-                    y: 1.0,
-                    z: -4.0,
-                },
-                radius: 1.5,
-                color: Color {
-                    red: 1.0,
-                    green: 1.0,
-                    blue: 1.0,
-                },
-                albedo: 0.18,
-            }),
-            Element::Plane(Plane {
-                origin: Point {
-                    x: 0.0,
-                    y: -2.0,
-                    z: -5.0,
-                },
-                normal: Vector3 {
-                    x: 0.0,
-                    y: -1.0,
-                    z: 0.0,
-                },
-                color: Color {
-                    red: 0.5,
-                    blue: 0.5,
-                    green: 0.5,
-                },
-                albedo: 0.18,
-            }),
-            Element::Plane(Plane {
-                origin: Point {
-                    x: 0.0,
-                    y: 0.0,
-                    z: -20.0,
-                },
-                normal: Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: -1.0,
-                },
-                color: Color {
-                    red: 0.2,
-                    blue: 0.3,
-                    green: 1.0,
-                },
-                albedo: 0.38,
-            }),
-        ],
-        lights: vec![
-            Light::Directional(DirectionalLight {
-                direction: Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: -1.0,
-                },
-                color: Color {
-                    red: 1.0,
-                    green: 1.0,
-                    blue: 1.0,
-                },
-                intensity: 0.0,
-            }),
-            Light::Spherical(SphericalLight {
-                position: Point {
-                    x: -2.0,
-                    y: 10.0,
-                    z: -3.0,
-                },
-                color: Color {
-                    red: 0.3,
-                    green: 0.8,
-                    blue: 0.3,
-                },
-                intensity: 40000.0,
-            }),
-            Light::Spherical(SphericalLight {
-                position: Point {
-                    x: 0.25,
-                    y: 0.0,
-                    z: -2.0,
-                },
-                color: Color {
-                    red: 0.8,
-                    green: 0.3,
-                    blue: 0.3,
-                },
-                intensity: 1000.0,
-            }),
-        ],
-    };
-
-    let img: DynamicImage = render(&test_scene);
+    let scene_file = File::open("test_scene.json").expect("File not found");
+    let scene: Scene = serde_json::from_reader(scene_file).unwrap();
+    let img: DynamicImage = render(&scene);
     img.save("output.png").expect("Failed to save output image");
 }
 
