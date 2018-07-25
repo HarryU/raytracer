@@ -1,7 +1,7 @@
 use image::{Pixel, Rgba};
 use point::Point;
 use rendering::{Intersectable, Ray};
-use std::ops::Mul;
+use std::ops::{Add, Mul};
 use vector::Vector3;
 
 const GAMMA: f32 = 2.2;
@@ -18,6 +18,22 @@ pub struct Color {
 }
 
 impl Color {
+    pub fn white() -> Color {
+        Color {
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+        }
+    }
+
+    pub fn black() -> Color {
+        Color {
+            red: 0.0,
+            green: 0.0,
+            blue: 0.0,
+        }
+    }
+
     pub fn to_rgba(&self) -> Rgba<u8> {
         Rgba::from_channels(
             (gamma_encode(self.red) * 255.0) as u8,
@@ -44,6 +60,18 @@ impl Mul for Color {
             red: self.red * other.red,
             green: self.green * other.green,
             blue: self.blue * other.blue,
+        }
+    }
+}
+
+impl Add for Color {
+    type Output = Color;
+
+    fn add(self, other: Color) -> Color {
+        Color {
+            red: self.red + other.red,
+            green: self.green + other.green,
+            blue: self.blue + other.blue,
         }
     }
 }
@@ -95,10 +123,54 @@ impl Element {
     }
 }
 
-pub struct Light {
+pub struct DirectionalLight {
     pub direction: Vector3,
     pub color: Color,
     pub intensity: f32,
+}
+
+pub struct SphericalLight {
+    pub position: Point,
+    pub color: Color,
+    pub intensity: f32,
+}
+
+pub enum Light {
+    Directional(DirectionalLight),
+    Spherical(SphericalLight),
+}
+
+impl Light {
+    pub fn color(&self) -> Color {
+        match *self {
+            Light::Directional(ref d) => d.color,
+            Light::Spherical(ref s) => s.color,
+        }
+    }
+
+    pub fn direction_from(&self, hit_point: &Point) -> Vector3 {
+        match *self {
+            Light::Directional(ref d) => -d.direction,
+            Light::Spherical(ref s) => (s.position - *hit_point).normalise(),
+        }
+    }
+
+    pub fn intensity(&self, hit_point: &Point) -> f32 {
+        match *self {
+            Light::Directional(ref d) => d.intensity,
+            Light::Spherical(ref s) => {
+                let r2 = (s.position - *hit_point).norm() as f32;
+                s.intensity / (4.0 * ::std::f32::consts::PI * r2)
+            }
+        }
+    }
+
+    pub fn distance(&self, hit_point: &Point) -> f64 {
+        match *self {
+            Light::Directional(_) => ::std::f64::INFINITY,
+            Light::Spherical(ref s) => (s.position - *hit_point).length(),
+        }
+    }
 }
 
 pub struct Scene {
@@ -107,7 +179,7 @@ pub struct Scene {
     pub fov: f64,
     pub shadow_bias: f64,
     pub elements: Vec<Element>,
-    pub light: Light,
+    pub lights: Vec<Light>,
 }
 
 pub struct Intersection<'a> {

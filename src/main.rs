@@ -8,7 +8,9 @@ mod vector;
 use image::{DynamicImage, GenericImage};
 use point::Point;
 use rendering::{Intersectable, Ray};
-use scene::{Color, Element, Intersection, Light, Plane, Scene, Sphere};
+use scene::{
+    Color, DirectionalLight, Element, Intersection, Light, Plane, Scene, Sphere, SphericalLight,
+};
 use vector::Vector3;
 
 fn main() {
@@ -97,19 +99,47 @@ fn main() {
                 albedo: 0.38,
             }),
         ],
-        light: Light {
-            direction: Vector3 {
-                x: 0.0,
-                y: 0.0,
-                z: -1.0,
-            },
-            color: Color {
-                red: 1.0,
-                green: 1.0,
-                blue: 1.0,
-            },
-            intensity: 15.0,
-        },
+        lights: vec![
+            Light::Directional(DirectionalLight {
+                direction: Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                color: Color {
+                    red: 1.0,
+                    green: 1.0,
+                    blue: 1.0,
+                },
+                intensity: 0.0,
+            }),
+            Light::Spherical(SphericalLight {
+                position: Point {
+                    x: -2.0,
+                    y: 10.0,
+                    z: -3.0,
+                },
+                color: Color {
+                    red: 0.3,
+                    green: 0.8,
+                    blue: 0.3,
+                },
+                intensity: 40000.0,
+            }),
+            Light::Spherical(SphericalLight {
+                position: Point {
+                    x: 0.25,
+                    y: 0.0,
+                    z: -2.0,
+                },
+                color: Color {
+                    red: 0.8,
+                    green: 0.3,
+                    blue: 0.3,
+                },
+                intensity: 1000.0,
+            }),
+        ],
     };
 
     let img: DynamicImage = render(&test_scene);
@@ -118,11 +148,6 @@ fn main() {
 
 fn render(scene: &Scene) -> DynamicImage {
     let mut image = DynamicImage::new_rgb8(scene.width, scene.height);
-    let black = Color {
-        red: 0.0,
-        green: 0.0,
-        blue: 0.0,
-    };
 
     for x in 0..scene.width {
         for y in 0..scene.height {
@@ -130,7 +155,7 @@ fn render(scene: &Scene) -> DynamicImage {
             let intersection = scene.trace(&ray);
             let color = intersection
                 .map(|i| get_color(&scene, &ray, &i))
-                .unwrap_or(black);
+                .unwrap_or(Color::black());
             image.put_pixel(x, y, color.to_rgba());
         }
     }
@@ -140,15 +165,26 @@ fn render(scene: &Scene) -> DynamicImage {
 fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection) -> Color {
     let hit_point = ray.origin.clone() + (ray.direction.clone() * intersection.distance);
     let surface_normal = intersection.element.surface_normal(&hit_point);
-    let direction_to_light = -scene.light.direction.normalise();
-    let shadow_ray = Ray {
-        origin: hit_point + (direction_to_light * scene.shadow_bias),
-        direction: direction_to_light,
-    };
-    let in_light = scene.trace(&shadow_ray).is_none();
-    let light_intensity = if in_light { scene.light.intensity } else { 0.0 };
-    let light_power = (surface_normal.dot(&direction_to_light) as f32).max(0.0) * light_intensity;
-    let light_reflected = intersection.element.albedo() / std::f32::consts::PI;
-    let color = intersection.element.color() * scene.light.color * light_power * light_reflected;
+    let mut color = Color::black();
+    for light in &scene.lights {
+        let direction_to_light = light.direction_from(&hit_point);
+        let shadow_ray = Ray {
+            origin: hit_point + (direction_to_light * scene.shadow_bias),
+            direction: direction_to_light,
+        };
+        let shadow_intersection = scene.trace(&shadow_ray);
+        let in_light = shadow_intersection.is_none()
+            || shadow_intersection.unwrap().distance > light.distance(&hit_point);
+        let light_intensity = if in_light {
+            light.intensity(&hit_point)
+        } else {
+            0.0
+        };
+        let light_power =
+            (surface_normal.dot(&direction_to_light) as f32).max(0.0) * light_intensity;
+        let light_reflected = intersection.element.albedo() / std::f32::consts::PI;
+        let light_color = light.color() * light_power * light_reflected;
+        color = color + (intersection.element.color() * light_color);
+    }
     color.clamp()
 }

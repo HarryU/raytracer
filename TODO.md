@@ -4,7 +4,7 @@
   - ~~planes~~
   - ~~shadows~~
   - reflection/refraction
-  - other light types (e.g. spherical)
+  - ~~other light types (e.g. spherical)~~
   
   from [here](https://bheisler.github.io/post/writing-raytracer-in-rust-part-2/)
 * Read scene from a file (so it can be changed without having to recompile)
