@@ -17,21 +17,21 @@ fn gamma_decode(encoded: f32) -> f32 {
     encoded.powf(GAMMA)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Material {
     pub coloration: Coloration,
     pub albedo: f32,
     pub surface: SurfaceType,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum SurfaceType {
     Diffuse,
     Reflective { reflectivity: f32 },
     Refractive { index: f32, transparency: f32 },
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum Coloration {
     Color(Color),
     Texture(#[serde(deserialize_with = "load_texture")] DynamicImage),
@@ -167,6 +167,7 @@ impl Mul<f64> for Color {
 pub enum Element {
     Sphere(Sphere),
     Plane(Plane),
+    Disk(Disk),
 }
 
 #[derive(Deserialize)]
@@ -184,11 +185,21 @@ pub struct Plane {
     pub material: Material,
 }
 
+#[derive(Deserialize)]
+pub struct Disk {
+    pub origin: Point,
+    #[serde(deserialize_with = "Vector3::deserialize_normalized")]
+    pub normal: Vector3,
+    pub radius: f64,
+    pub material: Material,
+}
+
 impl Element {
     pub fn color(&self, hit: &Point) -> Color {
         match *self {
             Element::Sphere(ref s) => s.material.coloration.color(&self.texture_coords(hit)),
             Element::Plane(ref p) => p.material.coloration.color(&self.texture_coords(hit)),
+            Element::Disk(ref d) => d.material.coloration.color(&self.texture_coords(hit)),
         }
     }
 
@@ -196,6 +207,7 @@ impl Element {
         match *self {
             Element::Sphere(ref s) => &s.material.albedo,
             Element::Plane(ref p) => &p.material.albedo,
+            Element::Disk(ref d) => &d.material.albedo,
         }
     }
 
@@ -203,6 +215,7 @@ impl Element {
         match *self {
             Element::Sphere(ref s) => &s.material,
             Element::Plane(ref p) => &p.material,
+            Element::Disk(ref d) => &d.material,
         }
     }
 }

@@ -1,6 +1,6 @@
 {
-	"width": 800,
-	"height": 600,
+	"width": 400,
+	"height": 225,
 	"fov": 90.0,
 	"elements": [
 		{
@@ -20,11 +20,7 @@
 						}
 					},
 					"albedo": 0.18,
-					"surface": {
-						"Reflective": {
-							"reflectivity": 0.7
-						}
-					}
+					"surface": "Diffuse"
 				}
 			}
 		},
@@ -62,17 +58,12 @@
 						}
 					},
 					"albedo": 0.18,
-					"surface": {
-						"Refractive": {
-							"index": 1.5,
-							"transparency": 1.0
-						}
-					}
+					"surface": "Diffuse"
 				}
 			}
 		},
 		{
-			"Plane": {
+			"Disk": {
 				"origin": {
 					"x": 0.0,
 					"y": -2.0,
@@ -83,16 +74,13 @@
 					"y": -1.0,
 					"z": 0.0
 				},
+				"radius": 5.0,
 				"material": {
 					"coloration": {
 						"Texture": "scenes/checkerboard.png"
 					},
 					"albedo": 0.18,
-					"surface": {
-						"Reflective": {
-							"reflectivity": 0.5
-						}
-					}
+					"surface": "Diffuse"
 				}
 			}
 		},

@@ -1,5 +1,5 @@
 use point::Point;
-use scene::{Color, Element, Intersection, Plane, Scene, Sphere, SurfaceType};
+use scene::{Color, Disk, Element, Intersection, Plane, Scene, Sphere, SurfaceType};
 use std::f32;
 use std::f32::consts::PI;
 use vector::Vector3;
@@ -89,6 +89,7 @@ impl Intersectable for Element {
         match *self {
             Element::Sphere(ref s) => s.intersect(ray),
             Element::Plane(ref p) => p.intersect(ray),
+            Element::Disk(ref d) => d.intersect(ray),
         }
     }
 
@@ -96,6 +97,7 @@ impl Intersectable for Element {
         match *self {
             Element::Sphere(ref s) => s.surface_normal(hit_point),
             Element::Plane(ref p) => p.surface_normal(hit_point),
+            Element::Disk(ref d) => d.surface_normal(hit_point),
         }
     }
 
@@ -103,6 +105,7 @@ impl Intersectable for Element {
         match *self {
             Element::Sphere(ref s) => s.texture_coords(hit_point),
             Element::Plane(ref p) => p.texture_coords(hit_point),
+            Element::Disk(ref d) => d.texture_coords(hit_point),
         }
     }
 }
@@ -162,8 +165,7 @@ impl Intersectable for Plane {
     }
 
     fn surface_normal(&self, _: &Point) -> Vector3 {
-        let surface_normal = -self.normal;
-        surface_normal
+        -self.normal
     }
 
     fn texture_coords(&self, hit_point: &Point) -> TextureCoords {
@@ -186,6 +188,40 @@ impl Intersectable for Plane {
             x: hit_vec.dot(&x_axis) as f32,
             y: hit_vec.dot(&y_axis) as f32,
         }
+    }
+}
+
+impl Intersectable for Disk {
+    fn intersect(&self, ray: &Ray) -> Option<f64> {
+        let plane = Plane {
+            origin: self.origin,
+            normal: self.normal,
+            material: self.material.clone(),
+        };
+        let plane_intersection = plane.intersect(ray);
+        if plane_intersection.is_some() {
+            let v = (ray.origin + (ray.direction * plane_intersection.unwrap())) - self.origin;
+            if v.dot(&v) < (self.radius * self.radius) {
+                plane_intersection
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    fn surface_normal(&self, _: &Point) -> Vector3 {
+        -self.normal
+    }
+
+    fn texture_coords(&self, hit_point: &Point) -> TextureCoords {
+        let plane = Plane {
+            origin: self.origin,
+            normal: self.normal,
+            material: self.material.clone(),
+        };
+        plane.texture_coords(hit_point)
     }
 }
 
