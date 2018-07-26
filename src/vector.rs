@@ -1,5 +1,6 @@
+use point::Point;
 use serde::{Deserialize, Deserializer};
-use std::ops::{Mul, Neg, Sub};
+use std::ops::{Add, Mul, Neg, Sub};
 
 #[derive(Copy, Clone, Deserialize)]
 pub struct Vector3 {
@@ -111,6 +112,18 @@ impl Neg for Vector3 {
             x: -self.x,
             y: -self.y,
             z: -self.z,
+        }
+    }
+}
+
+impl Add for Vector3 {
+    type Output = Vector3;
+
+    fn add(self, other: Vector3) -> Vector3 {
+        Vector3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
         }
     }
 }

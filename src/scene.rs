@@ -21,6 +21,14 @@ fn gamma_decode(encoded: f32) -> f32 {
 pub struct Material {
     pub coloration: Coloration,
     pub albedo: f32,
+    pub surface: SurfaceType,
+}
+
+#[derive(Deserialize)]
+pub enum SurfaceType {
+    Diffuse,
+    Reflective { reflectivity: f32 },
+    Refractive { index: f32, transparency: f32 },
 }
 
 #[derive(Deserialize)]
@@ -147,6 +155,14 @@ impl Mul<f32> for Color {
     }
 }
 
+impl Mul<f64> for Color {
+    type Output = Color;
+
+    fn mul(self, other: f64) -> Color {
+        self * other as f32
+    }
+}
+
 #[derive(Deserialize)]
 pub enum Element {
     Sphere(Sphere),
@@ -180,6 +196,13 @@ impl Element {
         match *self {
             Element::Sphere(ref s) => &s.material.albedo,
             Element::Plane(ref p) => &p.material.albedo,
+        }
+    }
+
+    pub fn material(&self) -> &Material {
+        match *self {
+            Element::Sphere(ref s) => &s.material,
+            Element::Plane(ref p) => &p.material,
         }
     }
 }
@@ -244,6 +267,7 @@ pub struct Scene {
     pub height: u32,
     pub fov: f64,
     pub shadow_bias: f64,
+    pub max_recursion_depth: u32,
     pub elements: Vec<Element>,
     pub lights: Vec<Light>,
 }

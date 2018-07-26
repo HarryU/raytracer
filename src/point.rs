@@ -1,5 +1,4 @@
-use std::ops::Add;
-use std::ops::Sub;
+use std::ops::{Add, Sub};
 use vector::Vector3;
 
 #[derive(Copy, Clone, Deserialize)]

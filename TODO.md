@@ -3,7 +3,7 @@
 * Add:
   - ~~planes~~
   - ~~shadows~~
-  - reflection/refraction
+  - ~~reflection/refraction~~
   - ~~spherical lights~~
   - ~~textures from images~~
   
@@ -13,4 +13,6 @@
 * Make the scene definition language at least partially [POVRay compatible](http://www.povray.org/documentation/3.7.0/r3_0.html)
 * Add other geometrical primatives (cubes, triangles, cylinders, cones, ...)
 * Add complex geometical primitives (torus? prisms? polygons? ...)
-* Optimise a bit (and remove as much `.clone()`'ing as possible)
+* Optimise a bit ~~(and remove as much `.clone()`'ing as possible)~~
+* Make lights "glint" off reflective objects
+* Make refractive spheres focus light
