@@ -58,6 +58,14 @@ impl Vector3 {
         let v3 = Vector3::deserialize(deserializer)?;
         Ok(v3.normalise())
     }
+
+    pub fn default_up() -> Vector3 {
+        Vector3 {
+            x: 0.0,
+            y: -1.0,
+            z: 0.0,
+        }
+    }
 }
 
 impl Sub for Vector3 {

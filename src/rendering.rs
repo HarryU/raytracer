@@ -18,13 +18,18 @@ impl Ray {
             ((((x as f64 + 0.5) / scene.width as f64) * 2.0 - 1.0) * aspect_ratio) * fov_adjustment;
         let sensor_y = (1.0 - ((y as f64 + 0.5) / scene.height as f64) * 2.0) * fov_adjustment;
 
+        let w = scene.camera.position - scene.camera.look_direction;
+        let u = scene.camera.up.cross(&w.to_vector()).normalise();
+        let v = w.to_vector().cross(&u);
+        let direction = Vector3 {
+            x: sensor_x,
+            y: sensor_y,
+            z: -1.,
+        };
+
         Ray {
-            origin: Point::zero(),
-            direction: Vector3 {
-                x: sensor_x,
-                y: sensor_y,
-                z: -1.,
-            }.normalise(),
+            origin: scene.camera.position,
+            direction: direction.normalise(),
         }
     }
 
@@ -216,12 +221,25 @@ impl Intersectable for Disk {
     }
 
     fn texture_coords(&self, hit_point: &Point) -> TextureCoords {
-        let plane = Plane {
-            origin: self.origin,
-            normal: self.normal,
-            material: self.material.clone(),
-        };
-        plane.texture_coords(hit_point)
+        let mut x_axis = self.normal.cross(&Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        });
+        if x_axis.length() == 0.0 {
+            x_axis = self.normal.cross(&Vector3 {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            });
+        }
+        let y_axis = self.normal.cross(&x_axis);
+        let hit_vec = *hit_point - self.origin;
+
+        TextureCoords {
+            x: hit_vec.dot(&x_axis) as f32,
+            y: hit_vec.dot(&y_axis) as f32,
+        }
     }
 }
 

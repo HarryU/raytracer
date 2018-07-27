@@ -20,6 +20,14 @@ impl Point {
             z: value,
         }
     }
+
+    pub fn to_vector(&self) -> Vector3 {
+        Vector3 {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        }
+    }
 }
 
 impl Sub<Vector3> for Point {

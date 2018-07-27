@@ -1,7 +1,19 @@
 {
-	"width": 1920,
-	"height": 1080,
+	"width": 1280,
+	"height": 800,
 	"fov": 90.0,
+	"camera": {
+		"position": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+		},
+		"look_direction": {
+						"x": 0.0,
+						"y": 0.0,
+						"z": 0.0
+		}
+	},
 	"elements": [
 		{
 			"Sphere" : {
@@ -71,7 +83,7 @@
 			}
 		},
 		{
-			"Disk": {
+			"Plane": {
 				"origin": {
 					"x": 0.0,
 					"y": -2.0,
@@ -82,13 +94,12 @@
 					"y": -1.0,
 					"z": 0.0
 				},
-				"radius": 5.0,
 				"material": {
 					"coloration": {
 						"Color": {
-							"red": 0.2,
-							"green": 0.3,
-							"blue": 1.0
+							"red": 0.4,
+							"green": 0.9,
+							"blue": 0.1
 						}
 					},
 					"albedo": 0.18,
@@ -131,9 +142,9 @@
 					"z": -3.0
 				},
 				"color": {
-					"red": 0.3,
-					"green": 0.8,
-					"blue": 0.3
+					"red": 1.0,
+					"green": 1.0,
+					"blue": 1.0
 				},
 				"intensity": 10000.0
 			}
@@ -146,26 +157,11 @@
 					"z": -2.0
 				},
 				"color": {
-					"red": 0.8,
-					"green": 0.3,
-					"blue": 0.3
-				},
-				"intensity": 250.0
-			}
-		},
-		{
-			"Directional": {
-				"direction": {
-					"x": 0.0,
-					"y": 0.0,
-					"z": -1.0
-				},
-				"color": {
 					"red": 1.0,
 					"green": 1.0,
 					"blue": 1.0
 				},
-				"intensity": 0.0
+				"intensity": 250.0
 			}
 		}
 	],

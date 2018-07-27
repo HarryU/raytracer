@@ -2,6 +2,7 @@ use image;
 use image::{DynamicImage, GenericImage, Pixel, Rgba};
 use point::Point;
 use rendering::{Intersectable, Ray, TextureCoords};
+use serde;
 use serde::{Deserialize, Deserializer};
 use std::ops::{Add, Mul};
 use std::path::PathBuf;
@@ -236,6 +237,15 @@ pub struct SphericalLight {
 }
 
 #[derive(Deserialize)]
+pub struct Camera {
+    pub position: Point,
+    #[serde(default = "Vector3::zero")]
+    pub look_direction: Vector3,
+    #[serde(default = "Vector3::default_up")]
+    pub up: Vector3,
+}
+
+#[derive(Deserialize)]
 pub enum Light {
     Directional(DirectionalLight),
     Spherical(SphericalLight),
@@ -283,6 +293,7 @@ pub struct Scene {
     pub max_recursion_depth: u32,
     pub elements: Vec<Element>,
     pub lights: Vec<Light>,
+    pub camera: Camera,
 }
 
 pub struct Intersection<'a> {
