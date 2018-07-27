@@ -1,6 +1,6 @@
 {
-	"width": 400,
-	"height": 225,
+	"width": 1920,
+	"height": 1080,
 	"fov": 90.0,
 	"elements": [
 		{
@@ -34,10 +34,18 @@
 				"radius": 2.0,
 				"material": {
 					"coloration": {
-						"Texture": "scenes/checkerboard.png"
+						"Color": {
+							"red": 1.0,
+							"green": 1.0,
+							"blue": 1.0
+						}
 					},
 					"albedo": 0.58,
-					"surface": "Diffuse"
+					"surface": {
+						"Reflective": {
+							"reflectivity": 0.7
+						}
+					}
 				}
 			}
 		},
@@ -77,7 +85,11 @@
 				"radius": 5.0,
 				"material": {
 					"coloration": {
-						"Texture": "scenes/checkerboard.png"
+						"Color": {
+							"red": 0.2,
+							"green": 0.3,
+							"blue": 1.0
+						}
 					},
 					"albedo": 0.18,
 					"surface": "Diffuse"
