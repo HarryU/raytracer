@@ -1,3 +1,4 @@
+use matrix::Matrix33;
 use point::Point;
 use scene::{Color, Disk, Element, Intersection, Plane, Scene, Sphere, SurfaceType};
 use std::f32;
@@ -12,24 +13,32 @@ pub struct Ray {
 impl Ray {
     pub fn create_prime(x: u32, y: u32, scene: &Scene) -> Ray {
         assert!(scene.width > scene.height);
-        let fov_adjustment = (scene.fov.to_radians() / 2.0).tan();
+        let fov_adjustment = fov_factor(&scene.fov);
         let aspect_ratio = (scene.width as f64) / (scene.height as f64);
-        let sensor_x =
-            ((((x as f64 + 0.5) / scene.width as f64) * 2.0 - 1.0) * aspect_ratio) * fov_adjustment;
-        let sensor_y = (1.0 - ((y as f64 + 0.5) / scene.height as f64) * 2.0) * fov_adjustment;
 
-        let w = scene.camera.position - scene.camera.look_direction;
-        let u = scene.camera.up.cross(&w.to_vector()).normalise();
-        let v = w.to_vector().cross(&u);
+        let normalised_device_coord_x = (x as f64 + 0.5) / scene.width as f64;
+        let normalised_device_coord_y = (y as f64 + 0.5) / scene.height as f64;
+
+        let screen_coord_x = normalised_device_coord_x * 2.0 - 1.0;
+        let screen_coord_y = 1.0 - normalised_device_coord_y * 2.0;
+
+        let sensor_x = (screen_coord_x * aspect_ratio) * fov_adjustment;
+        let sensor_y = screen_coord_y * fov_adjustment;
+
         let direction = Vector3 {
             x: sensor_x,
             y: sensor_y,
-            z: -1.,
+            z: -1.0,
         };
+
+        let forward = -(scene.camera.look_at - scene.camera.position).normalise();
+        let right = Vector3::default_up().cross(&forward).normalise();
+        let up = forward.cross(&right).normalise();
+        let rotation_matrix = Matrix33::from_vecs(&right, &up, &forward);
 
         Ray {
             origin: scene.camera.position,
-            direction: direction.normalise(),
+            direction: (rotation_matrix * direction).normalise(),
         }
     }
 
@@ -76,6 +85,10 @@ impl Ray {
             })
         }
     }
+}
+
+fn fov_factor(fov: &f64) -> f64 {
+    (fov.to_radians() / 2.0).tan()
 }
 
 pub struct TextureCoords {
@@ -334,7 +347,7 @@ fn diffuse_color(
 fn fresnel(incident: Vector3, normal: Vector3, index: f32) -> f64 {
     let mut eta_t = index as f64;
     let mut eta_i = 1.0f64;
-    let mut i_dot_n = incident.dot(&normal);
+    let i_dot_n = incident.dot(&normal);
     if i_dot_n > 0.0 {
         eta_t = 1.0;
         eta_i = index as f64;

@@ -25,7 +25,7 @@ pub struct Material {
     pub surface: SurfaceType,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub enum SurfaceType {
     Diffuse,
     Reflective { reflectivity: f32 },
@@ -70,7 +70,7 @@ fn wrap(val: f32, bound: u32) -> u32 {
     }
 }
 
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Deserialize, Clone, Copy, Debug)]
 pub struct Color {
     pub red: f32,
     pub green: f32,
@@ -239,8 +239,8 @@ pub struct SphericalLight {
 #[derive(Deserialize)]
 pub struct Camera {
     pub position: Point,
-    #[serde(default = "Vector3::zero")]
-    pub look_direction: Vector3,
+    #[serde(default = "Point::default_look_at")]
+    pub look_at: Point,
     #[serde(default = "Vector3::default_up")]
     pub up: Vector3,
 }

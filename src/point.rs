@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub};
 use vector::Vector3;
 
-#[derive(Copy, Clone, Deserialize)]
+#[derive(Copy, Clone, Deserialize, Debug)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -26,6 +26,14 @@ impl Point {
             x: self.x,
             y: self.y,
             z: self.z,
+        }
+    }
+
+    pub fn default_look_at() -> Point {
+        Point {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
         }
     }
 }

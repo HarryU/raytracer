@@ -2,7 +2,7 @@ use point::Point;
 use serde::{Deserialize, Deserializer};
 use std::ops::{Add, Mul, Neg, Sub};
 
-#[derive(Copy, Clone, Deserialize)]
+#[derive(Copy, Clone, Deserialize, Debug)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,
@@ -62,7 +62,7 @@ impl Vector3 {
     pub fn default_up() -> Vector3 {
         Vector3 {
             x: 0.0,
-            y: -1.0,
+            y: 1.0,
             z: 0.0,
         }
     }
