@@ -58,8 +58,8 @@ fn random_scene() -> Scene {
                     green: 0.5,
                     blue: 0.65,
                 }),
-                albedo: 0.5,
-                surface: SurfaceType::Reflective { reflectivity: 0.1 },
+                albedo: 0.23,
+                surface: SurfaceType::Reflective { reflectivity: 0.3 },
             },
         }),
         Element::Plane(Plane {
@@ -75,22 +75,22 @@ fn random_scene() -> Scene {
             },
             material: Material {
                 coloration: Coloration::Color(Color {
-                    red: 0.5,
-                    green: 0.0,
-                    blue: 0.6,
+                    red: 0.7,
+                    green: 0.4,
+                    blue: 0.8,
                 }),
-                albedo: 0.25,
+                albedo: 0.68,
                 surface: SurfaceType::Diffuse,
             },
         }),
     ];
-    for a in -11..11 {
-        for b in -11..11 {
+    for a in -15..15 {
+        for b in -8..-1 {
             let sphere = Element::Sphere(Sphere {
                 centre: Point {
-                    x: (a as f32 + 0.9 * rand::random::<f32>()).into(),
+                    x: ((a * 2) as f32 + 0.9 * rand::random::<f32>()).into(),
                     y: -1.8,
-                    z: (b as f32 + 0.9 * rand::random::<f32>()).into(),
+                    z: ((b * 2) as f32 + 0.9 * rand::random::<f32>()).into(),
                 },
                 radius: 0.2,
                 material: Material {
@@ -129,23 +129,19 @@ fn random_scene() -> Scene {
         Light::Spherical(SphericalLight {
             position: Point {
                 x: 5.0,
-                y: 25.0,
-                z: 15.0,
+                y: 10.0,
+                z: 0.0,
             },
             color: Color::white(),
-            intensity: 10000.0,
+            intensity: 15000.0,
         }),
         Light::Spherical(SphericalLight {
             position: Point {
                 x: -5.0,
-                y: 5.0,
-                z: -5.0,
+                y: 10.0,
+                z: 0.0,
             },
-            color: Color {
-                red: 0.8,
-                green: 0.8,
-                blue: 0.2,
-            },
+            color: Color::white(),
             intensity: 15000.0,
         }),
     ];
