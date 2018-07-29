@@ -55,7 +55,7 @@ fn random_scene() -> Scene {
             material: Material {
                 coloration: Coloration::Color(Color {
                     red: 0.4,
-                    green: 0.8,
+                    green: 0.5,
                     blue: 0.65,
                 }),
                 albedo: 0.5,
@@ -125,24 +125,39 @@ fn random_scene() -> Scene {
         },
     };
 
-    let lights: Vec<Light> = vec![Light::Spherical(SphericalLight {
-        position: Point {
-            x: -5.0,
-            y: 5.0,
-            z: -5.0,
-        },
-        color: Color::white(),
-        intensity: 1000.0,
-    })];
+    let lights: Vec<Light> = vec![
+        Light::Spherical(SphericalLight {
+            position: Point {
+                x: 5.0,
+                y: 25.0,
+                z: 15.0,
+            },
+            color: Color::white(),
+            intensity: 10000.0,
+        }),
+        Light::Spherical(SphericalLight {
+            position: Point {
+                x: -5.0,
+                y: 5.0,
+                z: -5.0,
+            },
+            color: Color {
+                red: 0.8,
+                green: 0.8,
+                blue: 0.2,
+            },
+            intensity: 15000.0,
+        }),
+    ];
 
     Scene {
-        width: 800,
-        height: 600,
+        width: 1920,
+        height: 1080,
         elements: elements,
         lights: lights,
         camera: camera,
         fov: 90.0,
         shadow_bias: 1e-10,
-        max_recursion_depth: 10,
+        max_recursion_depth: 6,
     }
 }
