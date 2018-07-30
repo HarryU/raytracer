@@ -32,8 +32,17 @@ fn render(scene: &Scene) -> DynamicImage {
 
     for x in 0..scene.width {
         for y in 0..scene.height {
-            let ray = Ray::create_prime(x, y, scene);
-            image.put_pixel(x, y, cast_ray(scene, &ray, 0).to_rgba());
+            let mut color = Color::black();
+            for _ in 0..3 {
+                let ray = Ray::create_prime(
+                    (x as f32) + (rand::random::<f32>() - 0.5),
+                    (y as f32) + (rand::random::<f32>() - 0.5),
+                    scene,
+                );
+                color = color + cast_ray(scene, &ray, 0);
+            }
+            color = color * 0.25;
+            image.put_pixel(x, y, color.to_rgba());
         }
     }
     image
