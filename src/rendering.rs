@@ -31,14 +31,9 @@ impl Ray {
             z: -1.0,
         };
 
-        let forward = -(scene.camera.look_at - scene.camera.position).normalise();
-        let right = Vector3::default_up().cross(&forward).normalise();
-        let up = forward.cross(&right).normalise();
-        let rotation_matrix = Matrix33::from_vecs(&right, &up, &forward);
-
         Ray {
             origin: scene.camera.position,
-            direction: (rotation_matrix * direction).normalise(),
+            direction: (scene.camera.rotation_matrix * direction).normalise(),
         }
     }
 

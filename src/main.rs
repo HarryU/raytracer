@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate serde_derive;
+extern crate clap;
 extern crate image;
 extern crate rand;
 extern crate serde;
@@ -11,17 +12,26 @@ mod rendering;
 mod scene;
 mod vector;
 
+use clap::{App, Arg};
 use image::{DynamicImage, GenericImage};
 use point::Point;
 use rendering::{cast_ray, Intersectable, Ray};
-use scene::{Camera, Color, Intersection, Scene};
-use scene::{Coloration, Element, Light, Material, Plane, Sphere, SphericalLight, SurfaceType};
+use scene::{
+    Camera, Color, Coloration, Element, Intersection, Light, Material, Plane, Scene, Sphere,
+    SphericalLight, SurfaceType,
+};
+use std::env;
 use std::fs::File;
 use vector::Vector3;
 
 fn main() {
     //let scene_file = File::open("test_scene.json").expect("File not found");
-    //let scene: Scene = serde_json::from_reader(scene_file).unwrap();
+    //let mut scene: Scene = serde_json::from_reader(scene_file).unwrap();
+    //scene.camera.rotation_matrix = Camera::calculate_rotation_matrix(
+    //    scene.camera.look_at,
+    //    scene.camera.position,
+    //    scene.camera.up,
+    //);
     let scene = random_scene();
     let img: DynamicImage = render(&scene);
     img.save("output.png").expect("Failed to save output image");
@@ -33,7 +43,7 @@ fn render(scene: &Scene) -> DynamicImage {
     for x in 0..scene.width {
         for y in 0..scene.height {
             let mut color = Color::black();
-            for _ in 0..3 {
+            for _ in 0..scene.n_samples {
                 let ray = Ray::create_prime(
                     (x as f32) + (rand::random::<f32>() - 0.5),
                     (y as f32) + (rand::random::<f32>() - 0.5),
@@ -41,7 +51,7 @@ fn render(scene: &Scene) -> DynamicImage {
                 );
                 color = color + cast_ray(scene, &ray, 0);
             }
-            color = color * 0.25;
+            color = color * (1.0 / scene.n_samples as f32);
             image.put_pixel(x, y, color.to_rgba());
         }
     }
@@ -93,8 +103,8 @@ fn random_scene() -> Scene {
             },
         }),
     ];
-    for a in -15..15 {
-        for b in -8..-1 {
+    for a in -1..1 {
+        for b in -2..-1 {
             let sphere = Element::Sphere(Sphere {
                 centre: Point {
                     x: ((a * 2) as f32 + 0.9 * rand::random::<f32>()).into(),
@@ -116,22 +126,27 @@ fn random_scene() -> Scene {
         }
     }
 
+    let position = Point {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    let look_at = Point {
+        x: 0.0,
+        y: 0.0,
+        z: -1.0,
+    };
+    let up = Vector3 {
+        x: 0.0,
+        y: 1.0,
+        z: 0.0,
+    };
+
     let camera = Camera {
-        position: Point {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        },
-        look_at: Point {
-            x: 0.0,
-            y: 0.0,
-            z: -1.0,
-        },
-        up: Vector3 {
-            x: 0.0,
-            y: 1.0,
-            z: 0.0,
-        },
+        position: position,
+        look_at: look_at,
+        up: up,
+        rotation_matrix: Camera::calculate_rotation_matrix(look_at, position, up),
     };
 
     let lights: Vec<Light> = vec![
@@ -164,5 +179,6 @@ fn random_scene() -> Scene {
         fov: 90.0,
         shadow_bias: 1e-10,
         max_recursion_depth: 6,
+        n_samples: 90,
     }
 }

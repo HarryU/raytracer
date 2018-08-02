@@ -5,7 +5,7 @@
 	"camera": {
 		"position": {
 						"x": 0.0,
-						"y": 0.0,
+						"y": 3.0,
 						"z": 0.0
 		},
 		"look_at": {
@@ -175,6 +175,7 @@
 			}
 		}
 	],
-	"shadow_bias": 1e-13,
-	"max_recursion_depth": 10
+	"shadow_bias": 1e-10,
+	"max_recursion_depth": 10,
+	"n_samples": 9
 }

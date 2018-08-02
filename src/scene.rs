@@ -1,5 +1,6 @@
 use image;
 use image::{DynamicImage, GenericImage, Pixel, Rgba};
+use matrix::Matrix33;
 use point::Point;
 use rendering::{Intersectable, Ray, TextureCoords};
 use serde;
@@ -243,6 +244,21 @@ pub struct Camera {
     pub look_at: Point,
     #[serde(default = "Vector3::default_up")]
     pub up: Vector3,
+    #[serde(skip_deserializing)]
+    pub rotation_matrix: Matrix33,
+}
+
+impl Camera {
+    pub fn calculate_rotation_matrix(
+        look_at: Point,
+        position: Point,
+        world_up: Vector3,
+    ) -> Matrix33 {
+        let forward = (position - look_at).normalise();
+        let right = world_up.cross(&forward).normalise();
+        let up = forward.cross(&right).normalise();
+        Matrix33::from_vecs(&right, &up, &forward)
+    }
 }
 
 #[derive(Deserialize)]
@@ -294,6 +310,7 @@ pub struct Scene {
     pub elements: Vec<Element>,
     pub lights: Vec<Light>,
     pub camera: Camera,
+    pub n_samples: u32,
 }
 
 pub struct Intersection<'a> {
