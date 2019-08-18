@@ -1,5 +1,5 @@
 use image;
-use image::{DynamicImage, GenericImage, Pixel, Rgba};
+use image::{DynamicImage, GenericImageView, Pixel, Rgba};
 use matrix::Matrix33;
 use point::Point;
 use rendering::{Intersectable, Ray, TextureCoords};
@@ -106,9 +106,9 @@ impl Color {
 
     pub fn from_rgba(rgba: Rgba<u8>) -> Color {
         Color {
-            red: gamma_decode((rgba.data[0] as f32) / 255.0),
-            green: gamma_decode((rgba.data[1] as f32) / 255.0),
-            blue: gamma_decode((rgba.data[2] as f32) / 255.0),
+            red: gamma_decode((rgba[0] as f32) / 255.0),
+            green: gamma_decode((rgba[1] as f32) / 255.0),
+            blue: gamma_decode((rgba[2] as f32) / 255.0),
         }
     }
 
