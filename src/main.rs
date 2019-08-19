@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
 extern crate clap;
 extern crate image;
 extern crate rand;
@@ -24,17 +25,49 @@ use std::fs::File;
 use vector::Vector3;
 use std::path::Path;
 use std::ffi::OsStr;
+use clap::{Arg, App, SubCommand};
+use rand::Rng;
+
 
 fn main() {
-    let filename = "scene.yml";
-    let scene_file = File::open(filename).expect("File not found");
-    let extension = Path::new(filename).extension().and_then(OsStr::to_str);
-    let mut scene: Scene = if extension == Some("json") {
-        serde_json::from_reader(scene_file).unwrap()
-    } else if extension == Some("yml") {
-        serde_yaml::from_reader(scene_file).unwrap()
+    let matches = App::new("Rust Raytracer")
+        .version("1.0")
+        .author("Harry Uzzell <hmucs@yahoo.co.uk>")
+        .about("A minimal raytracer implmented in Rust")
+        .arg(Arg::with_name("input_file")
+            .short("i")
+            .long("input_file")
+            .value_name("FILE")
+            .help("Sets an input scene file")
+            .takes_value(true))
+        .subcommand(SubCommand::with_name("random")
+            .about("Specify a grid to populate with random shapes")          
+            .arg(Arg::with_name("x")
+                .help("the size of the random shape grid in x")
+                .index(1)
+                .required(true))
+            .arg(Arg::with_name("y")
+                .help("the size of the random shape grid in y")
+                .index(2)
+                .required(true)))
+        .get_matches();
+    let mut scene: Scene = if matches.is_present("input_file") {
+        let filename = matches.value_of("input_file").unwrap();
+        let scene_file = File::open(filename).expect("File not found");
+        let extension = Path::new(filename).extension().and_then(OsStr::to_str);
+        if extension == Some("json") {
+            serde_json::from_reader(scene_file).unwrap()
+        } else if extension == Some("yml") {
+            serde_yaml::from_reader(scene_file).unwrap()
+        } else {
+            panic!("An input file path was provided but it wasn't a json or yml file.")
+        }
+    } else if let Some(matches) = matches.subcommand_matches("random") {
+        let x = value_t!(matches, "x", i32).unwrap_or(3);
+        let y = value_t!(matches, "y", i32).unwrap_or(3);
+        random_shapes(x, y)
     } else {
-        random_scene()
+        random_shapes(3, 3)
     };
     scene.camera.rotation_matrix = Camera::calculate_rotation_matrix(
         scene.camera.look_at,
@@ -66,29 +99,9 @@ fn render(scene: &Scene) -> DynamicImage {
     image
 }
 
-fn random_scene() -> Scene {
+fn random_shapes(rows: i32, cols: i32) -> Scene {
     let mut elements: Vec<Element> = vec![
-        Element::Plane(Plane {
-            origin: Point {
-                x: 0.0,
-                y: 0.0,
-                z: -20.0,
-            },
-            normal: Vector3 {
-                x: 0.0,
-                y: 0.0,
-                z: -1.0,
-            },
-            material: Material {
-                coloration: Coloration::Color(Color {
-                    red: 0.4,
-                    green: 0.5,
-                    blue: 0.65,
-                }),
-                albedo: 0.23,
-                surface: SurfaceType::Reflective { reflectivity: 0.3 },
-            },
-        }),
+        Element::Plane(Plane {..Default::default()}),
         Element::Plane(Plane {
             origin: Point {
                 x: 0.0,
@@ -100,37 +113,25 @@ fn random_scene() -> Scene {
                 y: -1.0,
                 z: 0.0,
             },
-            material: Material {
-                coloration: Coloration::Color(Color {
-                    red: 0.7,
-                    green: 0.4,
-                    blue: 0.8,
-                }),
-                albedo: 0.68,
-                surface: SurfaceType::Diffuse,
-            },
-        }),
+            ..Default::default()}),
     ];
-    for a in -1..1 {
-        for b in -2..-1 {
-            let sphere = Element::Sphere(Sphere {
-                centre: Point {
-                    x: ((a * 2) as f32 + 0.9 * rand::random::<f32>()).into(),
-                    y: -1.8,
-                    z: ((b * 2) as f32 + 0.9 * rand::random::<f32>()).into(),
-                },
-                radius: 0.2,
-                material: Material {
-                    coloration: Coloration::Color(Color {
-                        red: rand::random::<f32>(),
-                        blue: rand::random::<f32>(),
-                        green: rand::random::<f32>(),
-                    }),
-                    albedo: rand::random::<f32>(),
-                    surface: SurfaceType::Diffuse,
-                },
-            });
-            elements.push(sphere);
+    for a in 0..rows {
+        for b in 0..cols {
+            let mut rng = rand::thread_rng();
+            let r = rng.gen_range(0.4, 0.8);
+            let x = ((a - 1) * 3) as f32 + rng.gen_range(0.0, 0.9);
+            let y = -2.0 + r;
+            let z = ((b - 4) * 3) as f32 + rng.gen_range(0.0, 0.9);
+            let shape = Element::Sphere(
+                Sphere{
+                    centre: Point {
+                        x: (x).into(),
+                        y: y,
+                        z: (z).into(),
+                    },
+                    radius: r,
+                    ..Default::default()});
+            elements.push(shape);
         }
     }
 
@@ -179,8 +180,8 @@ fn random_scene() -> Scene {
     ];
 
     Scene {
-        width: 1920,
-        height: 1080,
+        width: 800,
+        height: 400,
         elements: elements,
         lights: lights,
         camera: camera,

@@ -4,10 +4,11 @@ use matrix::Matrix33;
 use point::Point;
 use rendering::{Intersectable, Ray, TextureCoords};
 use serde;
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
+use serde::{Deserialize, Serializer, Deserializer};
 use std::ops::{Add, Mul};
 use std::path::PathBuf;
 use vector::Vector3;
+use rand;
 
 const GAMMA: f32 = 2.2;
 
@@ -186,12 +187,60 @@ pub struct Sphere {
     pub material: Material,
 }
 
+impl Default for Sphere {
+    fn default() -> Sphere {
+        Sphere {
+                centre: Point {
+                    x: 0.0,
+                    y: -1.8,
+                    z: 0.0,
+                },
+                radius: 0.2,
+                material: Material {
+                    coloration: Coloration::Color(Color {
+                        red: rand::random::<f32>(),
+                        blue: rand::random::<f32>(),
+                        green: rand::random::<f32>(),
+                    }),
+                    albedo: rand::random::<f32>(),
+                    surface: SurfaceType::Diffuse,
+                },
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Plane {
     pub origin: Point,
     #[serde(deserialize_with = "Vector3::deserialize_normalized")]
     pub normal: Vector3,
     pub material: Material,
+}
+
+impl Default for Plane {
+    fn default() -> Plane {
+        Plane {
+            origin: Point {
+                x: 0.0,
+                y: 0.0,
+                z: -20.0,
+            },
+            normal: Vector3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0,
+            },
+            material: Material {
+                coloration: Coloration::Color(Color {
+                    red: 0.4,
+                    green: 0.5,
+                    blue: 0.65,
+                }),
+                albedo: 0.23,
+                surface: SurfaceType::Reflective { reflectivity: 0.3 },
+            },
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
