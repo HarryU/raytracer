@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub};
 use vector::Vector3;
 
-#[derive(Copy, Clone, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Point {
     pub x: f64,
     pub y: f64,

@@ -4,7 +4,7 @@ use matrix::Matrix33;
 use point::Point;
 use rendering::{Intersectable, Ray, TextureCoords};
 use serde;
-use serde::{Deserialize, Deserializer};
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use std::ops::{Add, Mul};
 use std::path::PathBuf;
 use vector::Vector3;
@@ -19,24 +19,24 @@ fn gamma_decode(encoded: f32) -> f32 {
     encoded.powf(GAMMA)
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Material {
     pub coloration: Coloration,
     pub albedo: f32,
     pub surface: SurfaceType,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum SurfaceType {
     Diffuse,
     Reflective { reflectivity: f32 },
     Refractive { index: f32, transparency: f32 },
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum Coloration {
     Color(Color),
-    Texture(#[serde(deserialize_with = "load_texture")] DynamicImage),
+    Texture(#[serde(deserialize_with = "load_texture", serialize_with = "write_string")] DynamicImage),
 }
 
 impl Coloration {
@@ -60,6 +60,13 @@ where
     Ok(image::open(path).expect("Unable to open texture file"))
 }
 
+pub fn write_string<S>(_: &DynamicImage, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str("texture file")
+}
+
 fn wrap(val: f32, bound: u32) -> u32 {
     let signed_bound = bound as i32;
     let float_coord = val * bound as f32;
@@ -71,7 +78,7 @@ fn wrap(val: f32, bound: u32) -> u32 {
     }
 }
 
-#[derive(Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct Color {
     pub red: f32,
     pub green: f32,
@@ -165,21 +172,21 @@ impl Mul<f64> for Color {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub enum Element {
     Sphere(Sphere),
     Plane(Plane),
     Disk(Disk),
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Sphere {
     pub centre: Point,
     pub radius: f64,
     pub material: Material,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Plane {
     pub origin: Point,
     #[serde(deserialize_with = "Vector3::deserialize_normalized")]
@@ -187,7 +194,7 @@ pub struct Plane {
     pub material: Material,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Disk {
     pub origin: Point,
     #[serde(deserialize_with = "Vector3::deserialize_normalized")]
@@ -222,7 +229,7 @@ impl Element {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct DirectionalLight {
     #[serde(deserialize_with = "Vector3::deserialize_normalized")]
     pub direction: Vector3,
@@ -230,21 +237,21 @@ pub struct DirectionalLight {
     pub intensity: f32,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct SphericalLight {
     pub position: Point,
     pub color: Color,
     pub intensity: f32,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Camera {
     pub position: Point,
     #[serde(default = "Point::default_look_at")]
     pub look_at: Point,
     #[serde(default = "Vector3::default_up")]
     pub up: Vector3,
-    #[serde(skip_deserializing)]
+    #[serde(skip_deserializing, skip_serializing)]
     pub rotation_matrix: Matrix33,
 }
 
@@ -261,7 +268,7 @@ impl Camera {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub enum Light {
     Directional(DirectionalLight),
     Spherical(SphericalLight),
@@ -300,7 +307,7 @@ impl Light {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Scene {
     pub width: u32,
     pub height: u32,

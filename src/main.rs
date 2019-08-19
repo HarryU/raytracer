@@ -5,6 +5,7 @@ extern crate image;
 extern crate rand;
 extern crate serde;
 extern crate serde_json;
+extern crate serde_yaml;
 
 mod matrix;
 mod point;
@@ -12,27 +13,34 @@ mod rendering;
 mod scene;
 mod vector;
 
-use clap::{App, Arg};
 use image::{DynamicImage, GenericImage};
 use point::Point;
-use rendering::{cast_ray, Intersectable, Ray};
+use rendering::{cast_ray, Ray};
 use scene::{
-    Camera, Color, Coloration, Element, Intersection, Light, Material, Plane, Scene, Sphere,
+    Camera, Color, Coloration, Element, Light, Material, Plane, Scene, Sphere,
     SphericalLight, SurfaceType,
 };
-use std::env;
 use std::fs::File;
 use vector::Vector3;
+use std::path::Path;
+use std::ffi::OsStr;
 
 fn main() {
-    //let scene_file = File::open("test_scene.json").expect("File not found");
-    //let mut scene: Scene = serde_json::from_reader(scene_file).unwrap();
-    //scene.camera.rotation_matrix = Camera::calculate_rotation_matrix(
-    //    scene.camera.look_at,
-    //    scene.camera.position,
-    //    scene.camera.up,
-    //);
-    let scene = random_scene();
+    let filename = "scene.yml";
+    let scene_file = File::open(filename).expect("File not found");
+    let extension = Path::new(filename).extension().and_then(OsStr::to_str);
+    let mut scene: Scene = if extension == Some("json") {
+        serde_json::from_reader(scene_file).unwrap()
+    } else if extension == Some("yml") {
+        serde_yaml::from_reader(scene_file).unwrap()
+    } else {
+        random_scene()
+    };
+    scene.camera.rotation_matrix = Camera::calculate_rotation_matrix(
+        scene.camera.look_at,
+        scene.camera.position,
+        scene.camera.up,
+    );
     let img: DynamicImage = render(&scene);
     img.save("output.png").expect("Failed to save output image");
 }

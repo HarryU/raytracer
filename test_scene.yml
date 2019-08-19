@@ -1,0 +1,39 @@
+width: 1280
+height: 800
+fov: 90
+camera:
+        position:
+                x: 0.0
+                y: 3.0
+                z: 0.0
+        look_at:
+                x: 0.0
+                y: 0.0
+                z: -5.0
+elements:
+        Sphere:
+                centre:
+                        x: 0.0
+                        y: 0.0
+                        z: -5.0
+                radius: 1.0
+                material:
+                        coloration:
+                                Color:
+                                        red: 0.2
+                                        green: 1.0
+                                        blue: 0.2
+                        albedo: 0.18
+                        surface: "Diffuse"
+lights:
+        Spherical:
+                position:
+                        x: 0.0
+                        y: 3.0
+                        z: 0.0
+                color:
+                        red: 1.0
+                        green: 1.0
+                        blue: 1.0
+                intensity: 1000.0
+shadow_bias: 1e-10,

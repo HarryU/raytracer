@@ -1,4 +1,3 @@
-use serde::{Deserialize, Deserializer};
 use std::ops::Mul;
 use vector::Vector3;
 
